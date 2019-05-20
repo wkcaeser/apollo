@@ -4,6 +4,7 @@ import com.ctrip.framework.apollo.common.exception.BadRequestException;
 import com.ctrip.framework.apollo.core.utils.StringUtils;
 import com.ctrip.framework.apollo.portal.entity.bo.UserInfo;
 import com.ctrip.framework.apollo.portal.entity.po.UserPO;
+import com.ctrip.framework.apollo.portal.service.SystemRoleManagerService;
 import com.ctrip.framework.apollo.portal.spi.LogoutHandler;
 import com.ctrip.framework.apollo.portal.spi.UserInfoHolder;
 import com.ctrip.framework.apollo.portal.spi.UserService;
@@ -27,14 +28,16 @@ public class UserInfoController {
   private final UserInfoHolder userInfoHolder;
   private final LogoutHandler logoutHandler;
   private final UserService userService;
+  private final SystemRoleManagerService systemRoleManagerService;
 
   public UserInfoController(
       final UserInfoHolder userInfoHolder,
       final LogoutHandler logoutHandler,
-      final UserService userService) {
+      final UserService userService, SystemRoleManagerService systemRoleManagerService) {
     this.userInfoHolder = userInfoHolder;
     this.logoutHandler = logoutHandler;
     this.userService = userService;
+    this.systemRoleManagerService = systemRoleManagerService;
   }
 
 
@@ -47,6 +50,11 @@ public class UserInfoController {
 
     if (userService instanceof SpringSecurityUserService) {
       ((SpringSecurityUserService) userService).createOrUpdate(user);
+      if (user.getCanCreateApplication() == 1) {
+        systemRoleManagerService.addOrUpdateCreateApplicationRole(user.getUsername(), true);
+      }else {
+        systemRoleManagerService.addOrUpdateCreateApplicationRole(user.getUsername(), false);
+      }
     } else {
       throw new UnsupportedOperationException("Create or update user operation is unsupported");
     }

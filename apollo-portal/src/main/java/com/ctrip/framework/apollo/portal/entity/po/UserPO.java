@@ -8,6 +8,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 /**
  * @author lepdou 2017-04-08
@@ -26,6 +27,8 @@ public class UserPO {
   private String password;
   @Column(name = "Email", nullable = false)
   private String email;
+  @Transient
+  private int canCreateApplication;
   @Column(name = "Enabled", nullable = false)
   private int enabled;
 
@@ -59,6 +62,14 @@ public class UserPO {
 
   public void setPassword(String password) {
     this.password = password;
+  }
+
+  public int getCanCreateApplication() {
+    return canCreateApplication;
+  }
+
+  public void setCanCreateApplication(int canCreateApplication) {
+    this.canCreateApplication = canCreateApplication;
   }
 
   public int getEnabled() {

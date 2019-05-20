@@ -57,6 +57,20 @@
                         </div>
                     </div>
 
+                    <div class="form-group" valdr-form-group>
+                        <label class="col-sm-2 control-label">
+                            <apollorequiredfield></apollorequiredfield>
+                            允许此用户创建项目</label>
+                        <div class="col-sm-5">
+                            <label class="checkbox-inline">
+                                <input type="radio" name="canCreateApplication" value="0" ng-model="user.canCreateApplication" checked> NO
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="radio" name="canCreateApplication" value="1" ng-model="user.canCreateApplication"> YES
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <div class="col-sm-offset-2 col-sm-9">
 

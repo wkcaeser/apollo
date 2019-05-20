@@ -119,6 +119,7 @@ function IndexController($scope, $window, toastr, AppUtil, AppService, UserServi
     }
 
     function goToCreateAppPage() {
+
         $window.location.href = "/app.html";
     }
 
