@@ -12,10 +12,12 @@ import com.ctrip.framework.apollo.portal.entity.vo.NamespaceRolesAssignedUsers;
 import com.ctrip.framework.apollo.portal.entity.vo.PermissionCondition;
 import com.ctrip.framework.apollo.portal.service.RoleInitializationService;
 import com.ctrip.framework.apollo.portal.service.RolePermissionService;
+import com.ctrip.framework.apollo.portal.service.SystemRoleManagerService;
 import com.ctrip.framework.apollo.portal.spi.UserInfoHolder;
 import com.ctrip.framework.apollo.portal.spi.UserService;
 import com.ctrip.framework.apollo.portal.util.RoleUtils;
 import com.google.common.collect.Sets;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.CollectionUtils;
@@ -37,16 +39,20 @@ public class PermissionController {
   private final RolePermissionService rolePermissionService;
   private final UserService userService;
   private final RoleInitializationService roleInitializationService;
+  private final SystemRoleManagerService systemRoleManagerService;
 
+  @Autowired
   public PermissionController(
       final UserInfoHolder userInfoHolder,
       final RolePermissionService rolePermissionService,
       final UserService userService,
-      final RoleInitializationService roleInitializationService) {
+      final RoleInitializationService roleInitializationService,
+      SystemRoleManagerService systemRoleManagerService) {
     this.userInfoHolder = userInfoHolder;
     this.rolePermissionService = rolePermissionService;
     this.userService = userService;
     this.roleInitializationService = roleInitializationService;
+    this.systemRoleManagerService = systemRoleManagerService;
   }
 
   @PostMapping("/apps/{appId}/initPermission")
@@ -227,7 +233,7 @@ public class PermissionController {
     return users;
   }
 
-  @PreAuthorize(value = "@permissionValidator.hasAssignRolePermission(#appId)")
+  @PreAuthorize(value = "@permissionValidator.isSuperAdmin() OR @permissionValidator.hasAddAppMasterRole(#appId)")
   @PostMapping("/apps/{appId}/roles/{roleType}")
   public ResponseEntity<Void> assignAppRoleToUser(@PathVariable String appId, @PathVariable String roleType,
                                                   @RequestBody String user) {
@@ -246,7 +252,7 @@ public class PermissionController {
     return ResponseEntity.ok().build();
   }
 
-  @PreAuthorize(value = "@permissionValidator.hasAssignRolePermission(#appId)")
+  @PreAuthorize(value = "@permissionValidator.isSuperAdmin() OR @permissionValidator.hasAddAppMasterRole(#appId)")
   @DeleteMapping("/apps/{appId}/roles/{roleType}")
   public ResponseEntity<Void> removeAppRoleFromUser(@PathVariable String appId, @PathVariable String roleType,
                                                     @RequestParam String user) {
@@ -266,4 +272,17 @@ public class PermissionController {
     }
   }
 
+  @PreAuthorize(value = "@permissionValidator.isSuperAdmin()")
+  @PostMapping("/apps/{appId}/system/master")
+  public ResponseEntity<Void> allowAddAppMaster(@PathVariable String appId) {
+    systemRoleManagerService.addAllowAddAppMasterRole(appId);
+    return ResponseEntity.ok().build();
+  }
+
+  @PreAuthorize(value = "@permissionValidator.isSuperAdmin()")
+  @DeleteMapping("/apps/{appId}/system/master")
+  public ResponseEntity<Void> forbidAddAppMaster(@PathVariable String appId) {
+    systemRoleManagerService.removeAllowAddAppMasterRole(appId);
+    return ResponseEntity.ok().build();
+  }
 }

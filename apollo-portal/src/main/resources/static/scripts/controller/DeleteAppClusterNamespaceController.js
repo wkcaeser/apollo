@@ -8,6 +8,8 @@ function DeleteAppClusterNamespaceController($scope, toastr, AppUtil, AppService
     $scope.deleteAppBtnDisabled = true;
     $scope.getAppInfo = getAppInfo;
     $scope.deleteApp = deleteApp;
+    $scope.deleteAppMasterAssignRole = deleteAppMasterAssignRole;
+    $scope.allowAppMasterAssignRole = allowAppMasterAssignRole;
 
     $scope.cluster = {};
     $scope.deleteClusterBtnDisabled = true;
@@ -64,6 +66,36 @@ function DeleteAppClusterNamespaceController($scope, toastr, AppUtil, AppService
               AppUtil.showErrorMsg(result);
           })
        }
+    }
+
+    function deleteAppMasterAssignRole() {
+      if (!$scope.app.appId) {
+        toastr.warning("请输入appId");
+        return;
+      }
+      if (confirm("确认删除AppId: " + $scope.app.appId + "的非superAdmin分配应用管理员的权限？")) {
+        AppService.delete_app_master_assign_role($scope.app.appId).then(function (result) {
+          toastr.success("删除成功");
+          $scope.deleteAppBtnDisabled = true;
+        }, function (result) {
+          AppUtil.showErrorMsg(result);
+        })
+      }
+    }
+
+    function allowAppMasterAssignRole() {
+      if (!$scope.app.appId) {
+        toastr.warning("请输入appId");
+        return;
+      }
+      if (confirm("确认添加AppId: " + $scope.app.appId + "的非superAdmin分配应用管理员的权限？")) {
+        AppService.allow_app_master_assign_role($scope.app.appId).then(function (result) {
+          toastr.success("添加成功");
+          $scope.deleteAppBtnDisabled = true;
+        }, function (result) {
+          AppUtil.showErrorMsg(result);
+        })
+      }
     }
 
     function getClusterInfo() {

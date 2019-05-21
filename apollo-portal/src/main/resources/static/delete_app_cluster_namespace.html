@@ -23,9 +23,10 @@
         <section class="panel-body" ng-show="isRootUser">
             <!-- delete app -->
             <section class="row">
-                <h5>删除应用
+                <h5>删除应用或修改应用管理员分配权限
                     <small>
-                        (由于删除应用影响面较大，所以现在暂时只允许系统管理员删除，请确保没有客户端读取该应用的配置后再做删除动作)
+                        (由于删除应用影响面较大，所以现在暂时只允许系统管理员删除，请确保没有客户端读取该应用的配置后再做删除动作；
+                        应用管理员分配权限仅限制非superAdmin以外的用户能否为应用添加其他管理员，不影响其他权限)
                     </small>
                 </h5>
                 <hr>
@@ -56,6 +57,16 @@
                                     ng-disabled="deleteAppBtnDisabled"
                                     ng-click="deleteApp()">
                                 删除应用
+                            </button>
+                            <button type="submit" class="btn btn-primary"
+                                    ng-disabled="deleteAppBtnDisabled"
+                                    ng-click="allowAppMasterAssignRole()">
+                                允许普通项目管理员添加Master
+                            </button>
+                            <button type="submit" class="btn btn-primary"
+                                    ng-disabled="deleteAppBtnDisabled"
+                                    ng-click="deleteAppMasterAssignRole()">
+                                禁止普通项目管理员添加Master
                             </button>
                         </div>
                     </div>

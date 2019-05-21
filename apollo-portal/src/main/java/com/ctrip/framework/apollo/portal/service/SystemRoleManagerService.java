@@ -11,7 +11,11 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * wkCaeser
+ */
 @Service
 public class SystemRoleManagerService {
 private final UserInfoHolder userInfoHolder;
@@ -44,6 +48,7 @@ private final UserInfoHolder userInfoHolder;
 
   }
 
+  @Transactional
   public void addOrUpdateCreateApplicationRole(String userId, boolean canCreateApplication) {
     String operator = userInfoHolder.getUser().getUserId();
     ArrayList<String> userIds = new ArrayList<>();
@@ -66,7 +71,6 @@ private final UserInfoHolder userInfoHolder;
     userRoleRepository.save(userRole);
   }
 
-
   public boolean hasCreateApplicationRole() {
     String operator = userInfoHolder.getUser().getUserId();
     Role createApplicationRole = roleRepository
@@ -76,5 +80,37 @@ private final UserInfoHolder userInfoHolder;
     List<UserRole> userRoles = userRoleRepository
         .findByUserIdInAndRoleId(userIds, createApplicationRole.getId());
     return userRoles.size() > 0;
+  }
+
+  @Transactional
+  public void addAllowAddAppMasterRole(String appId) {
+    String operator = userInfoHolder.getUser().getUserId();
+    String roleName = PermissionType.ALLOW_ADD_APP_MASTER + "+" + appId;
+    Role addAppMasterRole = roleRepository.findTopByRoleName(roleName);
+    if (addAppMasterRole == null) {
+      addAppMasterRole = new Role();
+      addAppMasterRole.setRoleName(roleName);
+      addAppMasterRole.setDataChangeCreatedBy(operator);
+      addAppMasterRole.setDataChangeLastModifiedBy("");
+      roleRepository.save(addAppMasterRole);
+    }
+  }
+
+  @Transactional
+  public void removeAllowAddAppMasterRole(String appId) {
+    String operator = userInfoHolder.getUser().getUserId();
+    String roleName = PermissionType.ALLOW_ADD_APP_MASTER + "+" + appId;
+    Role addAppMasterRole = roleRepository.findTopByRoleName(roleName);
+    if (addAppMasterRole != null) {
+      addAppMasterRole.setDeleted(true);
+      addAppMasterRole.setDataChangeLastModifiedBy(operator);
+      roleRepository.save(addAppMasterRole);
+    }
+  }
+
+  public boolean hasAddAppMasterRole(String appId) {
+    String roleName = PermissionType.ALLOW_ADD_APP_MASTER + "+" + appId;
+    Role addAppMasterRole = roleRepository.findTopByRoleName(roleName);
+    return addAppMasterRole != null;
   }
 }

@@ -7,7 +7,7 @@ public interface PermissionType {
    */
   String CREATE_APPLICATION = "CreateApplication";
 
-  String ADD_APP_MASTER = "AddAppMaster";
+  String ALLOW_ADD_APP_MASTER = "AllowAddAppMaster";
 
   /**
    * APP level permission
