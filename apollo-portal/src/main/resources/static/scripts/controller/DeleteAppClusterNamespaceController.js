@@ -75,7 +75,7 @@ function DeleteAppClusterNamespaceController($scope, toastr, AppUtil, AppService
       }
       if (confirm("确认删除AppId: " + $scope.app.appId + "的非superAdmin分配应用管理员的权限？")) {
         AppService.delete_app_master_assign_role($scope.app.appId).then(function (result) {
-          toastr.success("删除成功");
+          toastr.success("删除AppId: " + $scope.app.appId + "的非superAdmin分配应用管理员的权限成功");
           $scope.deleteAppBtnDisabled = true;
         }, function (result) {
           AppUtil.showErrorMsg(result);
@@ -90,7 +90,7 @@ function DeleteAppClusterNamespaceController($scope, toastr, AppUtil, AppService
       }
       if (confirm("确认添加AppId: " + $scope.app.appId + "的非superAdmin分配应用管理员的权限？")) {
         AppService.allow_app_master_assign_role($scope.app.appId).then(function (result) {
-          toastr.success("添加成功");
+          toastr.success("添加AppId: " + $scope.app.appId + "的非superAdmin分配应用管理员的权限成功");
           $scope.deleteAppBtnDisabled = true;
         }, function (result) {
           AppUtil.showErrorMsg(result);

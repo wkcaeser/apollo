@@ -8,9 +8,9 @@ function UserController($scope, $window, toastr, AppUtil, UserService) {
     
     $scope.createOrUpdateUser = function () {
         UserService.createOrUpdateUser($scope.user).then(function (result) {
-            toastr.success("创建用户成功");
+            toastr.success("操作成功");
         }, function (result) {
-            AppUtil.showErrorMsg(result, "创建用户失败");
+            AppUtil.showErrorMsg(result, "操作失败");
         })
 
     }
