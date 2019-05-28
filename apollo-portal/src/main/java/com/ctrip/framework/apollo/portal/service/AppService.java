@@ -14,6 +14,7 @@ import com.ctrip.framework.apollo.portal.spi.UserInfoHolder;
 import com.ctrip.framework.apollo.portal.spi.UserService;
 import com.ctrip.framework.apollo.tracer.Tracer;
 import com.google.common.collect.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,9 @@ public class AppService {
   private final RolePermissionService rolePermissionService;
   private final FavoriteService favoriteService;
   private final UserService userService;
+
+  @Autowired
+  private SystemRoleManagerService systemRoleManagerService;
 
   public AppService(
       final UserInfoHolder userInfoHolder,
@@ -178,6 +182,9 @@ public class AppService {
 
     //删除portal数据库中Permission、Role相关数据
     rolePermissionService.deleteRolePermissionsByAppId(appId, operator);
+
+    //删除项目allowAddMaster权限
+    systemRoleManagerService.removeAllowAddAppMasterRole(appId);
 
     return managedApp;
   }
