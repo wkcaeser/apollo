@@ -1,7 +1,6 @@
 package com.ctrip.framework.apollo.portal.service;
 
 import com.ctrip.framework.apollo.portal.constant.PermissionType;
-import com.ctrip.framework.apollo.portal.entity.bo.UserInfo;
 import com.ctrip.framework.apollo.portal.entity.po.Role;
 import com.ctrip.framework.apollo.portal.entity.po.ServerConfig;
 import com.ctrip.framework.apollo.portal.entity.po.UserRole;
@@ -9,18 +8,18 @@ import com.ctrip.framework.apollo.portal.repository.RoleRepository;
 import com.ctrip.framework.apollo.portal.repository.ServerConfigRepository;
 import com.ctrip.framework.apollo.portal.repository.UserRoleRepository;
 import com.ctrip.framework.apollo.portal.spi.UserInfoHolder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class SystemRoleManagerService {
@@ -37,6 +36,12 @@ public class SystemRoleManagerService {
   private Role createApplicationRole;
 
   private volatile byte isOpenCreateApplicationLimit;
+
+    public byte getIsOpenAllowAddAppMasterLimit() {
+        return isOpenAllowAddAppMasterLimit;
+    }
+
+    private volatile byte isOpenAllowAddAppMasterLimit;
 
   @Autowired
   public SystemRoleManagerService(RoleRepository roleRepository,
@@ -66,10 +71,10 @@ public class SystemRoleManagerService {
   @Scheduled(cron="0 0/1 * * * ?")
   public void loadSystemRoleServerConfig() {
     // load createApplication role serverConfig
-    ServerConfig serverConfig = serverConfigRepository.findByKey("role.createApplication");
-    if (serverConfig != null) {
+    ServerConfig serverConfigOfCreateApplicationRole = serverConfigRepository.findByKey("role.createApplication");
+    if (serverConfigOfCreateApplicationRole != null) {
       try {
-        isOpenCreateApplicationLimit = Byte.parseByte(serverConfig.getValue());
+        isOpenCreateApplicationLimit = Byte.parseByte(serverConfigOfCreateApplicationRole.getValue());
         if (isOpenCreateApplicationLimit !=0 && isOpenCreateApplicationLimit !=1) {
           throw new IllegalArgumentException("apollo-portal serverConfig role.createApplication is illegalArgument");
         }
@@ -79,6 +84,20 @@ public class SystemRoleManagerService {
         isOpenCreateApplicationLimit = 0;
       }
     }
+      // load allowAddAppMaster role serverConfig
+      ServerConfig serverConfigOfAllowAddAppMasterRole = serverConfigRepository.findByKey("role.allowAddAppMaster");
+      if (serverConfigOfAllowAddAppMasterRole != null) {
+          try {
+              isOpenAllowAddAppMasterLimit = Byte.parseByte(serverConfigOfAllowAddAppMasterRole.getValue());
+              if (isOpenAllowAddAppMasterLimit !=0 && isOpenAllowAddAppMasterLimit !=1) {
+                  throw new IllegalArgumentException("apollo-portal serverConfig role.allowAddAppMaster is illegalArgument");
+              }
+          }catch (Throwable e) {
+              logger.error(e.getMessage());
+              logger.error("apollo-portal serverConfig role.allowAddAppMaster must be 0 or 1");
+              isOpenAllowAddAppMasterLimit = 0;
+          }
+      }
   }
 
   @Transactional
@@ -135,4 +154,40 @@ public class SystemRoleManagerService {
             .findByUserIdInAndRoleId(userIds, createApplicationRole.getId());
     return userRoles.size() > 0;
   }
+
+    @Transactional
+    public void addAllowAddAppMasterRole(String appId) {
+        String operator = userInfoHolder.getUser().getUserId();
+        String roleName = PermissionType.ALLOW_ADD_APP_MASTER + "+" + appId;
+        Role addAppMasterRole = roleRepository.findTopByRoleName(roleName);
+        if (addAppMasterRole == null) {
+            addAppMasterRole = new Role();
+            addAppMasterRole.setRoleName(roleName);
+            addAppMasterRole.setDataChangeCreatedBy(operator);
+            addAppMasterRole.setDataChangeLastModifiedBy("");
+            roleRepository.save(addAppMasterRole);
+        }
+    }
+
+    @Transactional
+    public void removeAllowAddAppMasterRole(String appId) {
+        String operator = userInfoHolder.getUser().getUserId();
+        String roleName = PermissionType.ALLOW_ADD_APP_MASTER + "+" + appId;
+        Role addAppMasterRole = roleRepository.findTopByRoleName(roleName);
+        if (addAppMasterRole != null) {
+            addAppMasterRole.setDeleted(true);
+            addAppMasterRole.setDataChangeLastModifiedBy(operator);
+            roleRepository.save(addAppMasterRole);
+        }
+    }
+
+    public boolean hasAddAppMasterRole(String appId) {
+        if (isOpenAllowAddAppMasterLimit == 0) {
+            return true;
+        }
+
+        String roleName = PermissionType.ALLOW_ADD_APP_MASTER + "+" + appId;
+        Role addAppMasterRole = roleRepository.findTopByRoleName(roleName);
+        return addAppMasterRole != null;
+    }
 }

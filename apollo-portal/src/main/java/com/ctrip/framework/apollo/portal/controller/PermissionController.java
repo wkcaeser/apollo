@@ -17,6 +17,7 @@ import com.ctrip.framework.apollo.portal.spi.UserInfoHolder;
 import com.ctrip.framework.apollo.portal.spi.UserService;
 import com.ctrip.framework.apollo.portal.util.RoleUtils;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -235,7 +236,7 @@ public class PermissionController {
     return users;
   }
 
-  @PreAuthorize(value = "@permissionValidator.hasAssignRolePermission(#appId)")
+  @PreAuthorize(value = "@permissionValidator.isSuperAdmin() OR @permissionValidator.hasAddAppMasterRole(#appId)")
   @PostMapping("/apps/{appId}/roles/{roleType}")
   public ResponseEntity<Void> assignAppRoleToUser(@PathVariable String appId, @PathVariable String roleType,
                                                   @RequestBody String user) {
@@ -254,7 +255,7 @@ public class PermissionController {
     return ResponseEntity.ok().build();
   }
 
-  @PreAuthorize(value = "@permissionValidator.hasAssignRolePermission(#appId)")
+    @PreAuthorize(value = "@permissionValidator.isSuperAdmin() OR @permissionValidator.hasAddAppMasterRole(#appId)")
   @DeleteMapping("/apps/{appId}/roles/{roleType}")
   public ResponseEntity<Void> removeAppRoleFromUser(@PathVariable String appId, @PathVariable String roleType,
                                                     @RequestParam String user) {
@@ -296,4 +297,24 @@ public class PermissionController {
     return systemRoleManagerService.getCreateApplicationRoleUsers();
   }
 
+    @PreAuthorize(value = "@permissionValidator.isSuperAdmin()")
+    @PostMapping("/apps/{appId}/system/master")
+    public ResponseEntity<Void> allowAddAppMaster(@PathVariable String appId) {
+        systemRoleManagerService.addAllowAddAppMasterRole(appId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize(value = "@permissionValidator.isSuperAdmin()")
+    @DeleteMapping("/apps/{appId}/system/master")
+    public ResponseEntity<Void> forbidAddAppMaster(@PathVariable String appId) {
+        systemRoleManagerService.removeAllowAddAppMasterRole(appId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/system/role/allowAddAppMaster")
+    public JsonObject isOpenAllowAddAppMasterRoleLimit() {
+      JsonObject rs = new JsonObject();
+      rs.addProperty("isOpen", systemRoleManagerService.getIsOpenAllowAddAppMasterLimit() == 1);
+      return rs;
+    }
 }

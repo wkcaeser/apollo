@@ -22,9 +22,8 @@
 
         <section class="panel-body" ng-show="isRootUser">
 
-            <!-- delete cluster -->
             <section class="row">
-                <h5>添加创建用户权限
+                <h5>为用户添加创建应用权限
                     <small>
                         (暂时只允许系统管理员操作)
                     </small>
@@ -58,6 +57,51 @@
                         </div>
                     </div>
                 </div>
+            </section>
+
+            <section class="row">
+                <h5>修改应用管理员分配权限
+                    <small>
+                        (应用管理员分配权限仅限制非superAdmin以外的用户能否为应用添加其他管理员，不影响其他权限)
+                    </small>
+                </h5>
+                <hr>
+                <form class="form-horizontal">
+                    <div class="form-group" valdr-form-group>
+                        <label class="col-sm-2 control-label">
+                            <apollorequiredfield></apollorequiredfield>
+                            应用AppId</label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" ng-model="app.appId">
+                            <small>(请先查询应用信息)</small>
+                        </div>
+                        <div class="col-sm-1">
+                            <button class="btn btn-info" ng-click="getAppInfo()">查询</button>
+                        </div>
+                    </div>
+                    <div class="form-group" valdr-form-group>
+                        <label class="col-sm-2 control-label">
+                            应用信息</label>
+                        <div class="col-sm-5">
+                            <h5 ng-show="app.info" ng-bind="app.info"></h5>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-9">
+                            <button type="submit" class="btn btn-primary"
+                                    ng-disabled="operateAddAppMasterRoleBtn"
+                                    ng-click="allowAppMasterAssignRole()">
+                                允许普通项目管理员添加Master
+                            </button>
+                            <button type="submit" class="btn btn-primary"
+                                    ng-disabled="operateAddAppMasterRoleBtn"
+                                    ng-click="deleteAppMasterAssignRole()">
+                                禁止普通项目管理员添加Master
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </section>
 
         </section>

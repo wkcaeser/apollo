@@ -11,10 +11,21 @@ angular.module('systemRole', ['app.service', 'apollo.directive', 'app.util', 'to
 
     $scope.hasCreateApplicationPermissionUserList = [];
 
+    $scope.operateAddAppMasterRoleBtn = true;
+
+    $scope.app = {
+        appId: "",
+        info: ""
+    };
+
     initPermission();
 
     $scope.addCreateApplicationRoleToUSer = function() {
         var user = $('.' + $scope.modifySystemRoleWidgetId).select2('data')[0];
+        if (!user) {
+            toastr.warning("请选择用户名");
+            return;
+        }
         SystemRoleService.add_create_application_role(user.id)
             .then(
                 function (value) {
@@ -22,7 +33,7 @@ angular.module('systemRole', ['app.service', 'apollo.directive', 'app.util', 'to
                     getCreateApplicationRoleUsers();
                 },
                 function (reason) {
-                    toastr.warn(AppUtil.errorMsg(reason), "添加失败");
+                    toastr.warning(AppUtil.errorMsg(reason), "添加失败");
                 }
             );
     };
@@ -48,7 +59,7 @@ angular.module('systemRole', ['app.service', 'apollo.directive', 'app.util', 'to
                     $scope.hasCreateApplicationPermissionUserList = result;
                 },
                 function (reason) {
-                    toastr.warn(AppUtil.errorMsg(reason), "获取拥有创建项目的用户列表出错");
+                    toastr.warning(AppUtil.errorMsg(reason), "获取拥有创建项目的用户列表出错");
                 }
             )
     }
@@ -60,4 +71,59 @@ angular.module('systemRole', ['app.service', 'apollo.directive', 'app.util', 'to
             });
         getCreateApplicationRoleUsers();
     }
+
+    $scope.getAppInfo = function() {
+        if (!$scope.app.appId) {
+            toastr.warning("请输入appId");
+            $scope.operateAddAppMasterRoleBtn = true;
+            return;
+        }
+
+        $scope.app.info = "";
+
+        AppService.load($scope.app.appId).then(function (result) {
+            if (!result.appId) {
+                toastr.warning("AppId: " + $scope.app.appId + " 不存在！");
+                $scope.operateAddAppMasterRoleBtn = true;
+                return;
+            }
+
+            $scope.app.info = "应用名：" + result.name + " 部门：" + result.orgName + '(' + result.orgId + ')' + " 负责人：" + result.ownerName;
+
+            $scope.operateAddAppMasterRoleBtn = false;
+        }, function (result) {
+            AppUtil.showErrorMsg(result);
+            $scope.operateAddAppMasterRoleBt = true;
+        });
+    };
+
+    $scope.deleteAppMasterAssignRole   = function() {
+            if (!$scope.app.appId) {
+                toastr.warning("请输入appId");
+                return;
+            }
+            if (confirm("确认删除AppId: " + $scope.app.appId + "的非superAdmin分配应用管理员的权限？")) {
+                AppService.delete_app_master_assign_role($scope.app.appId).then(function (result) {
+                    toastr.success("删除AppId: " + $scope.app.appId + "的非superAdmin分配应用管理员的权限成功");
+                    $scope.operateAddAppMasterRoleBtn = true;
+                }, function (result) {
+                    AppUtil.showErrorMsg(result);
+                })
+            }
+        };
+
+    $scope.allowAppMasterAssignRole = function () {
+            if (!$scope.app.appId) {
+                toastr.warning("请输入appId");
+                return;
+            }
+            if (confirm("确认添加AppId: " + $scope.app.appId + "的非superAdmin分配应用管理员的权限？")) {
+                AppService.allow_app_master_assign_role($scope.app.appId).then(function (result) {
+                    toastr.success("添加AppId: " + $scope.app.appId + "的非superAdmin分配应用管理员的权限成功");
+                    $scope.operateAddAppMasterRoleBtn = true;
+                }, function (result) {
+                    AppUtil.showErrorMsg(result);
+                })
+            }
+        };
 }]);
