@@ -3,6 +3,11 @@ package com.ctrip.framework.apollo.portal.constant;
 public interface PermissionType {
 
   /**
+   * system level permission
+   */
+  String CREATE_APPLICATION = "CreateApplication";
+
+  /**
    * APP level permission
    */
 

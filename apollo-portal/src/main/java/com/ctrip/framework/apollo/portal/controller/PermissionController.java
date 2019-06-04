@@ -12,10 +12,12 @@ import com.ctrip.framework.apollo.portal.entity.vo.NamespaceRolesAssignedUsers;
 import com.ctrip.framework.apollo.portal.entity.vo.PermissionCondition;
 import com.ctrip.framework.apollo.portal.service.RoleInitializationService;
 import com.ctrip.framework.apollo.portal.service.RolePermissionService;
+import com.ctrip.framework.apollo.portal.service.SystemRoleManagerService;
 import com.ctrip.framework.apollo.portal.spi.UserInfoHolder;
 import com.ctrip.framework.apollo.portal.spi.UserService;
 import com.ctrip.framework.apollo.portal.util.RoleUtils;
 import com.google.common.collect.Sets;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.CollectionUtils;
@@ -27,6 +29,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 
@@ -37,16 +42,19 @@ public class PermissionController {
   private final RolePermissionService rolePermissionService;
   private final UserService userService;
   private final RoleInitializationService roleInitializationService;
+  private final SystemRoleManagerService systemRoleManagerService;
 
+  @Autowired
   public PermissionController(
-      final UserInfoHolder userInfoHolder,
-      final RolePermissionService rolePermissionService,
-      final UserService userService,
-      final RoleInitializationService roleInitializationService) {
+          final UserInfoHolder userInfoHolder,
+          final RolePermissionService rolePermissionService,
+          final UserService userService,
+          final RoleInitializationService roleInitializationService, SystemRoleManagerService systemRoleManagerService) {
     this.userInfoHolder = userInfoHolder;
     this.rolePermissionService = rolePermissionService;
     this.userService = userService;
     this.roleInitializationService = roleInitializationService;
+    this.systemRoleManagerService = systemRoleManagerService;
   }
 
   @PostMapping("/apps/{appId}/initPermission")
@@ -264,6 +272,28 @@ public class PermissionController {
     if (userService.findByUserId(userId) == null) {
       throw new BadRequestException(String.format("User %s does not exist!", userId));
     }
+  }
+
+  @PreAuthorize(value = "@permissionValidator.isSuperAdmin()")
+  @PostMapping("/system/role/createApplication")
+  public ResponseEntity<Void> addCreateApplicationRoleToUser(@RequestBody List<String> userIds) {
+    systemRoleManagerService.addCreateApplicationRole(userIds);
+    return ResponseEntity.ok().build();
+  }
+
+  @PreAuthorize(value = "@permissionValidator.isSuperAdmin()")
+  @DeleteMapping("/system/role/createApplication/{userId}")
+  public ResponseEntity<Void> deleteCreateApplicationRoleFromUser(@PathVariable("userId") String userId) {
+    List<String> userIds = new ArrayList<>();
+    userIds.add(userId);
+    systemRoleManagerService.deleteCreateApplicationRole(userIds);
+    return ResponseEntity.ok().build();
+  }
+
+  @PreAuthorize(value = "@permissionValidator.isSuperAdmin()")
+  @GetMapping("/system/role/createApplication")
+  public List<String> getCreateApplicationRoleUsers() {
+    return systemRoleManagerService.getCreateApplicationRoleUsers();
   }
 
 }
