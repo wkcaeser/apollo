@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @EnableAutoConfiguration
 @EnableTransactionManagement
-@EnableScheduling
 @ComponentScan(basePackageClasses = {ApolloCommonConfig.class,
     PortalApplication.class, PortalOpenApiConfig.class})
 public class PortalApplication {

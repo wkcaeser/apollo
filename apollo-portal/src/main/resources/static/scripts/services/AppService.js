@@ -49,11 +49,11 @@ appService.service('AppService', ['$resource', '$q', function ($resource, $q) {
         },
         allow_app_master_assign_role: {
             method: 'POST',
-            url: '/apps/:appId/system/master'
+            url: '/apps/:appId/system/master/:userId'
         },
         delete_app_master_assign_role: {
             method: 'DELETE',
-            url: '/apps/:appId/system/master'
+            url: '/apps/:appId/system/master/:userId'
         }
     });
     return {
@@ -181,10 +181,11 @@ appService.service('AppService', ['$resource', '$q', function ($resource, $q) {
             });
             return d.promise;
         },
-        allow_app_master_assign_role: function (appId) {
+        allow_app_master_assign_role: function (appId, userId) {
             var d = $q.defer();
             app_resource.allow_app_master_assign_role({
-                appId: appId
+                appId: appId,
+                userId: userId
             }, null, function (result) {
                 d.resolve(result);
             }, function (result) {
@@ -192,10 +193,11 @@ appService.service('AppService', ['$resource', '$q', function ($resource, $q) {
             });
             return d.promise;
         },
-        delete_app_master_assign_role: function (appId) {
+        delete_app_master_assign_role: function (appId, userId) {
             var d = $q.defer();
             app_resource.delete_app_master_assign_role({
-                appId: appId
+                appId: appId,
+                userId: userId
             }, function (result) {
                 d.resolve(result);
             }, function (result) {

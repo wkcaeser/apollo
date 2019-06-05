@@ -8,6 +8,7 @@ angular.module('systemRole', ['app.service', 'apollo.directive', 'app.util', 'to
     $scope.deleteCreateApplicationBtnDisabled = false;
 
     $scope.modifySystemRoleWidgetId = 'modifySystemRoleWidgetId';
+    $scope.modifyManageAppMasterRoleWidgetId = 'modifyManageAppMasterRoleWidgetId';
 
     $scope.hasCreateApplicationPermissionUserList = [];
 
@@ -98,28 +99,38 @@ angular.module('systemRole', ['app.service', 'apollo.directive', 'app.util', 'to
     };
 
     $scope.deleteAppMasterAssignRole   = function() {
-            if (!$scope.app.appId) {
-                toastr.warning("请输入appId");
-                return;
-            }
-            if (confirm("确认删除AppId: " + $scope.app.appId + "的非superAdmin分配应用管理员的权限？")) {
-                AppService.delete_app_master_assign_role($scope.app.appId).then(function (result) {
-                    toastr.success("删除AppId: " + $scope.app.appId + "的非superAdmin分配应用管理员的权限成功");
-                    $scope.operateAddAppMasterRoleBtn = true;
-                }, function (result) {
-                    AppUtil.showErrorMsg(result);
-                })
-            }
-        };
+        if (!$scope.app.appId) {
+            toastr.warning("请输入appId");
+            return;
+        }
+        var user = $('.' + $scope.modifyManageAppMasterRoleWidgetId).select2('data')[0];
+        if (!user) {
+            toastr.warning("请选择用户名");
+            return;
+        }
+        if (confirm("确认删除AppId: " + $scope.app.appId + "的用户: " + user.id + " 分配应用管理员的权限？")) {
+            AppService.delete_app_master_assign_role($scope.app.appId, user.id).then(function (result) {
+                toastr.success("删除AppId: " + $scope.app.appId + "的用户: " + user.id + " 分配应用管理员的权限成功");
+                $scope.operateAddAppMasterRoleBtn = true;
+            }, function (result) {
+                AppUtil.showErrorMsg(result);
+            })
+        }
+    };
 
     $scope.allowAppMasterAssignRole = function () {
             if (!$scope.app.appId) {
                 toastr.warning("请输入appId");
                 return;
             }
-            if (confirm("确认添加AppId: " + $scope.app.appId + "的非superAdmin分配应用管理员的权限？")) {
-                AppService.allow_app_master_assign_role($scope.app.appId).then(function (result) {
-                    toastr.success("添加AppId: " + $scope.app.appId + "的非superAdmin分配应用管理员的权限成功");
+            var user = $('.' + $scope.modifyManageAppMasterRoleWidgetId).select2('data')[0];
+            if (!user) {
+                toastr.warning("请选择用户名");
+                return;
+            }
+            if (confirm("确认添加AppId: " + $scope.app.appId + "的用户: " + user.id + " 分配应用管理员的权限？")) {
+                AppService.allow_app_master_assign_role($scope.app.appId, user.id).then(function (result) {
+                    toastr.success("添加AppId: " + $scope.app.appId + "的用户: " + user.id + " 分配应用管理员的权限成功");
                     $scope.operateAddAppMasterRoleBtn = true;
                 }, function (result) {
                     AppUtil.showErrorMsg(result);

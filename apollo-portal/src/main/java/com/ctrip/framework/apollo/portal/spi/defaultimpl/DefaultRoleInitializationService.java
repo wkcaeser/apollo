@@ -9,15 +9,16 @@ import com.ctrip.framework.apollo.portal.constant.PermissionType;
 import com.ctrip.framework.apollo.portal.constant.RoleType;
 import com.ctrip.framework.apollo.portal.entity.po.Permission;
 import com.ctrip.framework.apollo.portal.entity.po.Role;
+import com.ctrip.framework.apollo.portal.repository.PermissionRepository;
 import com.ctrip.framework.apollo.portal.service.RoleInitializationService;
 import com.ctrip.framework.apollo.portal.service.RolePermissionService;
 import com.ctrip.framework.apollo.portal.spi.UserInfoHolder;
 import com.ctrip.framework.apollo.portal.util.RoleUtils;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,6 +35,8 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
   private RolePermissionService rolePermissionService;
   @Autowired
   private PortalConfig portalConfig;
+  @Autowired
+  private PermissionRepository permissionRepository;
 
   @Transactional
   public void initAppRoles(App app) {
@@ -56,6 +59,7 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
 
     initNamespaceRoles(appId, ConfigConsts.NAMESPACE_APPLICATION, operator);
     initNamespaceEnvRoles(appId, ConfigConsts.NAMESPACE_APPLICATION, operator);
+    initManageAppMasterRole(appId, operator);
 
     //assign modify、release namespace role to user
     rolePermissionService.assignRoleToUsers(
@@ -104,6 +108,30 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
     if (rolePermissionService.findRoleByRoleName(releaseNamespaceEnvRoleName) == null) {
       createNamespaceEnvRole(appId, namespaceName, PermissionType.RELEASE_NAMESPACE, env,
           releaseNamespaceEnvRoleName, operator);
+    }
+  }
+
+  @Transactional
+  public void initManageAppMasterRole(String appId, String operator) {
+    Permission permission = createPermission(appId, PermissionType.MANAGE_APP_MASTER, operator);
+    rolePermissionService.createPermission(permission);
+    Role  role = new Role();
+    role.setRoleName(RoleUtils.buildManageAppMasterRoleName(PermissionType.MANAGE_APP_MASTER, appId));
+    role.setDataChangeCreatedBy(operator);
+    role.setDataChangeLastModifiedBy(operator);
+    Set<Long> permissionIds = new HashSet<>();
+    permissionIds.add(permission.getId());
+    rolePermissionService.createRoleWithPermissions(role, permissionIds);
+  }
+
+  // fix historical data
+  @Transactional
+  public void fixManageAppMasterRole(String appId, String operator) {
+    synchronized (DefaultRoleInitializationService.class) {
+      Permission permission = permissionRepository.findTopByPermissionTypeAndTargetId(PermissionType.MANAGE_APP_MASTER, appId);
+      if (permission == null) {
+        initManageAppMasterRole(appId, operator);
+      }
     }
   }
 
