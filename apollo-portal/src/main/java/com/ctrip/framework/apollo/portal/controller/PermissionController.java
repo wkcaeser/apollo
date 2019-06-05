@@ -4,6 +4,7 @@ import com.ctrip.framework.apollo.common.exception.BadRequestException;
 import com.ctrip.framework.apollo.common.utils.RequestPrecondition;
 import com.ctrip.framework.apollo.core.enums.Env;
 import com.ctrip.framework.apollo.core.enums.EnvUtils;
+import com.ctrip.framework.apollo.portal.component.PermissionValidator;
 import com.ctrip.framework.apollo.portal.constant.PermissionType;
 import com.ctrip.framework.apollo.portal.constant.RoleType;
 import com.ctrip.framework.apollo.portal.entity.bo.UserInfo;
@@ -43,18 +44,20 @@ public class PermissionController {
   private final UserService userService;
   private final RoleInitializationService roleInitializationService;
   private final SystemRoleManagerService systemRoleManagerService;
+  private final PermissionValidator permissionValidator;
 
   @Autowired
   public PermissionController(
           final UserInfoHolder userInfoHolder,
           final RolePermissionService rolePermissionService,
           final UserService userService,
-          final RoleInitializationService roleInitializationService, SystemRoleManagerService systemRoleManagerService) {
+          final RoleInitializationService roleInitializationService, SystemRoleManagerService systemRoleManagerService, PermissionValidator permissionValidator) {
     this.userInfoHolder = userInfoHolder;
     this.rolePermissionService = rolePermissionService;
     this.userService = userService;
     this.roleInitializationService = roleInitializationService;
     this.systemRoleManagerService = systemRoleManagerService;
+    this.permissionValidator = permissionValidator;
   }
 
   @PostMapping("/apps/{appId}/initPermission")
@@ -235,7 +238,7 @@ public class PermissionController {
     return users;
   }
 
-  @PreAuthorize(value = "@permissionValidator.isSuperAdmin() OR @permissionValidator.hasAddAppMasterRole(#appId)")
+  @PreAuthorize(value = "@permissionValidator.isSuperAdmin() OR @permissionValidator.hasManageAppMasterRole(#appId)")
   @PostMapping("/apps/{appId}/roles/{roleType}")
   public ResponseEntity<Void> assignAppRoleToUser(@PathVariable String appId, @PathVariable String roleType,
                                                   @RequestBody String user) {
@@ -254,7 +257,7 @@ public class PermissionController {
     return ResponseEntity.ok().build();
   }
 
-    @PreAuthorize(value = "@permissionValidator.isSuperAdmin() OR @permissionValidator.hasAddAppMasterRole(#appId)")
+    @PreAuthorize(value = "@permissionValidator.isSuperAdmin() OR @permissionValidator.hasManageAppMasterRole(#appId)")
   @DeleteMapping("/apps/{appId}/roles/{roleType}")
   public ResponseEntity<Void> removeAppRoleFromUser(@PathVariable String appId, @PathVariable String roleType,
                                                     @RequestParam String user) {
@@ -303,9 +306,17 @@ public class PermissionController {
             .stream().map(UserInfo::getUserId).collect(Collectors.toList());
   }
 
+  @GetMapping("/system/role/createApplication/{userId}")
+  public JsonObject hasCreateApplicationRole(@PathVariable String userId) {
+    JsonObject rs = new JsonObject();
+    rs.addProperty("hasCreateApplicationPermission", permissionValidator.isSuperAdmin()
+            || permissionValidator.hasCreateApplicationRole(userId));
+    return rs;
+  }
+
   @PreAuthorize(value = "@permissionValidator.isSuperAdmin()")
   @PostMapping("/apps/{appId}/system/master/{userId}")
-  public ResponseEntity<Void> allowAddAppMaster(@PathVariable String appId, @PathVariable String userId) {
+  public ResponseEntity<Void> manageAppMaster(@PathVariable String appId, @PathVariable String userId) {
     checkUserExists(userId);
     roleInitializationService.fixManageAppMasterRole(appId, userInfoHolder.getUser().getUserId());
     Set<String> userIds = new HashSet<>();
@@ -317,7 +328,7 @@ public class PermissionController {
 
   @PreAuthorize(value = "@permissionValidator.isSuperAdmin()")
   @DeleteMapping("/apps/{appId}/system/master/{userId}")
-  public ResponseEntity<Void> forbidAddAppMaster(@PathVariable String appId, @PathVariable String  userId) {
+  public ResponseEntity<Void> forbidManageAppMaster(@PathVariable String appId, @PathVariable String  userId) {
     checkUserExists(userId);
     roleInitializationService.fixManageAppMasterRole(appId, userInfoHolder.getUser().getUserId());
     Set<String> userIds = new HashSet<>();
@@ -327,10 +338,10 @@ public class PermissionController {
     return ResponseEntity.ok().build();
   }
 
-    @GetMapping("/system/role/allowAddAppMaster")
-    public JsonObject isOpenAllowAddAppMasterRoleLimit() {
+    @GetMapping("/system/role/manageAppMaster")
+    public JsonObject isOpenManageAppMasterRoleLimit() {
       JsonObject rs = new JsonObject();
-      rs.addProperty("isOpen", systemRoleManagerService.getIsOpenAllowAddAppMasterLimit() == 1);
+      rs.addProperty("isOpen", systemRoleManagerService.getIsOpenManageAppMasterLimit() == 1);
       return rs;
     }
 }

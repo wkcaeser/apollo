@@ -54,6 +54,10 @@ appService.service('AppService', ['$resource', '$q', function ($resource, $q) {
         delete_app_master_assign_role: {
             method: 'DELETE',
             url: '/apps/:appId/system/master/:userId'
+        },
+        has_create_application_role: {
+            method: 'GET',
+            url: '/system/role/createApplication/:userId'
         }
     });
     return {
@@ -197,6 +201,17 @@ appService.service('AppService', ['$resource', '$q', function ($resource, $q) {
             var d = $q.defer();
             app_resource.delete_app_master_assign_role({
                 appId: appId,
+                userId: userId
+            }, function (result) {
+                d.resolve(result);
+            }, function (result) {
+                d.reject(result);
+            });
+            return d.promise;
+        },
+        has_create_application_role: function (userId) {
+            var d = $q.defer();
+            app_resource.has_create_application_role({
                 userId: userId
             }, function (result) {
                 d.resolve(result);

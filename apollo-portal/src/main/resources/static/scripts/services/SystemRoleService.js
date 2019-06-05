@@ -15,7 +15,7 @@ appService.service('SystemRoleService', ['$resource', '$q', function ($resource,
         },
         has_open_allow_add_app_master_role_limit: {
             method: 'GET',
-            url: '/system/role/allowAddAppMaster'
+            url: '/system/role/manageAppMaster'
         }
     });
     return {

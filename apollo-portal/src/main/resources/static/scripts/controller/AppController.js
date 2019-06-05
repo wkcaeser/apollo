@@ -39,7 +39,7 @@ function createAppController($scope, $window, toastr, AppService, AppUtil, Organ
     function initSystemRole() {
         SystemRoleService.has_open_allow_add_app_master_role_limit().then(
             function (value) {
-                $scope.isOpenAllowAddAppMasterRoleLimit = value.isOpen;
+                $scope.isOpenManageAppMasterRoleLimit = value.isOpen;
                 UserService.load_user().then(
                     function (value1) {
                         $scope.currentUser = value1;
@@ -49,7 +49,7 @@ function createAppController($scope, $window, toastr, AppService, AppUtil, Organ
                     })
             },
             function (reason) {
-                toastr.error(AppUtil.errorMsg(reason), "init system role of allowAddAppMaster failed");
+                toastr.error(AppUtil.errorMsg(reason), "init system role of manageAppMaster failed");
             }
         );
     }
@@ -70,7 +70,7 @@ function createAppController($scope, $window, toastr, AppService, AppUtil, Organ
 
         // owner
         var owner = $('.ownerSelector').select2('data')[0];
-        if ($scope.isOpenAllowAddAppMasterRoleLimit) {
+        if ($scope.isOpenManageAppMasterRoleLimit) {
             owner  = {id:  $scope.currentUser.userId};
         }
         if (!owner) {
@@ -83,7 +83,7 @@ function createAppController($scope, $window, toastr, AppService, AppUtil, Organ
         //admins
         $scope.app.admins = [];
         var admins = $(".adminSelector").select2('data');
-        if ($scope.isOpenAllowAddAppMasterRoleLimit) {
+        if ($scope.isOpenManageAppMasterRoleLimit) {
             admins  = [{id: $scope.currentUser.userId}];
         }
         if (admins) {

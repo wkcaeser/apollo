@@ -12,7 +12,7 @@ angular.module('systemRole', ['app.service', 'apollo.directive', 'app.util', 'to
 
     $scope.hasCreateApplicationPermissionUserList = [];
 
-    $scope.operateAddAppMasterRoleBtn = true;
+    $scope.operateManageAppMasterRoleBtn = true;
 
     $scope.app = {
         appId: "",
@@ -76,7 +76,7 @@ angular.module('systemRole', ['app.service', 'apollo.directive', 'app.util', 'to
     $scope.getAppInfo = function() {
         if (!$scope.app.appId) {
             toastr.warning("请输入appId");
-            $scope.operateAddAppMasterRoleBtn = true;
+            $scope.operateManageAppMasterRoleBtn = true;
             return;
         }
 
@@ -85,16 +85,16 @@ angular.module('systemRole', ['app.service', 'apollo.directive', 'app.util', 'to
         AppService.load($scope.app.appId).then(function (result) {
             if (!result.appId) {
                 toastr.warning("AppId: " + $scope.app.appId + " 不存在！");
-                $scope.operateAddAppMasterRoleBtn = true;
+                $scope.operateManageAppMasterRoleBtn = true;
                 return;
             }
 
             $scope.app.info = "应用名：" + result.name + " 部门：" + result.orgName + '(' + result.orgId + ')' + " 负责人：" + result.ownerName;
 
-            $scope.operateAddAppMasterRoleBtn = false;
+            $scope.operateManageAppMasterRoleBtn = false;
         }, function (result) {
             AppUtil.showErrorMsg(result);
-            $scope.operateAddAppMasterRoleBt = true;
+            $scope.operateManageAppMasterRoleBt = true;
         });
     };
 
@@ -111,7 +111,7 @@ angular.module('systemRole', ['app.service', 'apollo.directive', 'app.util', 'to
         if (confirm("确认删除AppId: " + $scope.app.appId + "的用户: " + user.id + " 分配应用管理员的权限？")) {
             AppService.delete_app_master_assign_role($scope.app.appId, user.id).then(function (result) {
                 toastr.success("删除AppId: " + $scope.app.appId + "的用户: " + user.id + " 分配应用管理员的权限成功");
-                $scope.operateAddAppMasterRoleBtn = true;
+                $scope.operateManageAppMasterRoleBtn = true;
             }, function (result) {
                 AppUtil.showErrorMsg(result);
             })
@@ -131,7 +131,7 @@ angular.module('systemRole', ['app.service', 'apollo.directive', 'app.util', 'to
             if (confirm("确认添加AppId: " + $scope.app.appId + "的用户: " + user.id + " 分配应用管理员的权限？")) {
                 AppService.allow_app_master_assign_role($scope.app.appId, user.id).then(function (result) {
                     toastr.success("添加AppId: " + $scope.app.appId + "的用户: " + user.id + " 分配应用管理员的权限成功");
-                    $scope.operateAddAppMasterRoleBtn = true;
+                    $scope.operateManageAppMasterRoleBtn = true;
                 }, function (result) {
                     AppUtil.showErrorMsg(result);
                 })

@@ -4,7 +4,6 @@ import com.ctrip.framework.apollo.portal.constant.PermissionType;
 import com.ctrip.framework.apollo.portal.entity.po.Permission;
 import com.ctrip.framework.apollo.portal.entity.po.Role;
 import com.ctrip.framework.apollo.portal.entity.po.ServerConfig;
-import com.ctrip.framework.apollo.portal.entity.po.UserRole;
 import com.ctrip.framework.apollo.portal.repository.PermissionRepository;
 import com.ctrip.framework.apollo.portal.repository.RoleRepository;
 import com.ctrip.framework.apollo.portal.repository.ServerConfigRepository;
@@ -16,14 +15,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class SystemRoleManagerService {
@@ -33,12 +28,6 @@ public class SystemRoleManagerService {
 
   public static final String CREATE_APPLICATION_ROLE_NAME = RoleUtils.buildCreateApplicationRoleName(PermissionType.CREATE_APPLICATION, SYSTEM_PERMISSION_TARGET_ID);
 
-  private final UserInfoHolder userInfoHolder;
-
-  private final RoleRepository roleRepository;
-
-  private final UserRoleRepository userRoleRepository;
-
   private final ServerConfigRepository serverConfigRepository;
 
   @Autowired
@@ -46,23 +35,17 @@ public class SystemRoleManagerService {
   @Autowired
   private PermissionRepository  permissionRepository;
 
-  private Role createApplicationRole;
-
   private volatile byte isOpenCreateApplicationLimit;
 
-    public byte getIsOpenAllowAddAppMasterLimit() {
-        return isOpenAllowAddAppMasterLimit;
+  public byte getIsOpenManageAppMasterLimit() {
+        return isOpenManageAppMasterLimit;
     }
 
-    private volatile byte isOpenAllowAddAppMasterLimit;
+  private volatile byte isOpenManageAppMasterLimit;
 
   @Autowired
-  public SystemRoleManagerService(RoleRepository roleRepository,
-                                  UserRoleRepository userRoleRepository, UserInfoHolder userInfoHolder, ServerConfigRepository serverConfigRepository) {
-    this.roleRepository = roleRepository;
-    this.userRoleRepository = userRoleRepository;
-    this.userInfoHolder = userInfoHolder;
-    this.serverConfigRepository = serverConfigRepository;
+  public SystemRoleManagerService(ServerConfigRepository serverConfigRepository) {
+      this.serverConfigRepository = serverConfigRepository;
   }
 
   @PostConstruct
@@ -108,18 +91,18 @@ public class SystemRoleManagerService {
         isOpenCreateApplicationLimit = 0;
       }
     }
-      // load allowAddAppMaster role serverConfig
-      ServerConfig serverConfigOfAllowAddAppMasterRole = serverConfigRepository.findByKey("role.manage-app-master.enabled");
-      if (serverConfigOfAllowAddAppMasterRole != null) {
+      // load manageAppMaster role serverConfig
+      ServerConfig serverConfigOfManageAppMasterRole = serverConfigRepository.findByKey("role.manage-app-master.enabled");
+      if (serverConfigOfManageAppMasterRole != null) {
           try {
-              isOpenAllowAddAppMasterLimit = Byte.parseByte(serverConfigOfAllowAddAppMasterRole.getValue());
-              if (isOpenAllowAddAppMasterLimit !=0 && isOpenAllowAddAppMasterLimit !=1) {
+              isOpenManageAppMasterLimit = Byte.parseByte(serverConfigOfManageAppMasterRole.getValue());
+              if (isOpenManageAppMasterLimit !=0 && isOpenManageAppMasterLimit !=1) {
                   throw new IllegalArgumentException("apollo-portal serverConfig role.manage-app-master.enabled is illegalArgument");
               }
           }catch (Throwable e) {
               logger.error(e.getMessage());
               logger.error("apollo-portal serverConfig role.manage-app-master.enabled must be 0 or 1");
-              isOpenAllowAddAppMasterLimit = 0;
+              isOpenManageAppMasterLimit = 0;
           }
       }
   }
@@ -132,8 +115,8 @@ public class SystemRoleManagerService {
     return rolePermissionService.userHasPermission(userId, PermissionType.CREATE_APPLICATION, SYSTEM_PERMISSION_TARGET_ID);
   }
 
-  public boolean hasAddAppMasterRole(String userId, String appId) {
-    if (isOpenAllowAddAppMasterLimit == 0) {
+  public boolean hasManageAppMasterRole(String userId, String appId) {
+    if (isOpenManageAppMasterLimit == 0) {
       return true;
     }
 

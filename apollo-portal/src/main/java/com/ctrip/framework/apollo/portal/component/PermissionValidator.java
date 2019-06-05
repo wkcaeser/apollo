@@ -126,10 +126,14 @@ public class PermissionValidator {
   }
 
   public boolean  hasCreateApplicationRole() {
-    return systemRoleManagerService.hasCreateApplicationRole(userInfoHolder.getUser().getUserId());
+    return hasCreateApplicationRole(userInfoHolder.getUser().getUserId());
   }
 
-  public boolean hasAddAppMasterRole(String appId) {
-    return systemRoleManagerService.hasAddAppMasterRole(userInfoHolder.getUser().getUserId(), appId);
+  public boolean  hasCreateApplicationRole(String userId) {
+    return systemRoleManagerService.hasCreateApplicationRole(userId);
+  }
+
+  public boolean hasManageAppMasterRole(String appId) {
+    return systemRoleManagerService.hasManageAppMasterRole(userInfoHolder.getUser().getUserId(), appId);
   }
 }
