@@ -341,7 +341,7 @@ public class PermissionController {
     @GetMapping("/system/role/manageAppMaster")
     public JsonObject isOpenManageAppMasterRoleLimit() {
       JsonObject rs = new JsonObject();
-      rs.addProperty("isOpen", systemRoleManagerService.getIsOpenManageAppMasterLimit() == 1);
+      rs.addProperty("isOpen", systemRoleManagerService.getManageAppMasterRoleSwitchValue() == 1);
       return rs;
     }
 }
