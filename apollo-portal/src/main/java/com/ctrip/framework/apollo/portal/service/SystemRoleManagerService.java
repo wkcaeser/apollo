@@ -4,7 +4,6 @@ import com.ctrip.framework.apollo.portal.constant.PermissionType;
 import com.ctrip.framework.apollo.portal.entity.po.Permission;
 import com.ctrip.framework.apollo.portal.entity.po.Role;
 import com.ctrip.framework.apollo.portal.repository.PermissionRepository;
-import com.ctrip.framework.apollo.portal.repository.ServerConfigRepository;
 import com.ctrip.framework.apollo.portal.util.RoleUtils;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,20 +24,18 @@ public class SystemRoleManagerService {
   private static final String CREATE_APPLICATION_LIMIT_SWITCH_KEY = "role.create-application.enabled";
   private static final String MANAGE_APP_MASTER_LIMIT_SWITCH_KEY = "role.manage-app-master.enabled";
 
-  private final ServerConfigRepository serverConfigRepository;
-
   private final RolePermissionService rolePermissionService;
   private final PermissionRepository  permissionRepository;
 
-  @Autowired
-  private PortalDBPropertySource portalDBPropertySource;
+  private final PortalDBPropertySource portalDBPropertySource;
 
 
   @Autowired
-  public SystemRoleManagerService(ServerConfigRepository serverConfigRepository, RolePermissionService rolePermissionService, PermissionRepository permissionRepository) {
-      this.serverConfigRepository = serverConfigRepository;
-      this.rolePermissionService = rolePermissionService;
-      this.permissionRepository = permissionRepository;
+  public SystemRoleManagerService(RolePermissionService rolePermissionService,
+      PermissionRepository permissionRepository, PortalDBPropertySource portalDBPropertySource) {
+    this.rolePermissionService = rolePermissionService;
+    this.permissionRepository = permissionRepository;
+    this.portalDBPropertySource = portalDBPropertySource;
   }
 
   @PostConstruct

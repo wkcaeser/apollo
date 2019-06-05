@@ -13,7 +13,7 @@ appService.service('SystemRoleService', ['$resource', '$q', function ($resource,
             url: '/system/role/createApplication',
             isArray: true
         },
-        has_open_allow_add_app_master_role_limit: {
+        has_open_manage_app_master_role_limit: {
             method: 'GET',
             url: '/system/role/manageAppMaster'
         }
@@ -65,10 +65,10 @@ appService.service('SystemRoleService', ['$resource', '$q', function ($resource,
                 });
             return d.promise;
         },
-        has_open_allow_add_app_master_role_limit: function () {
+        has_open_manage_app_master_role_limit: function () {
             var finished = false;
             var d = $q.defer();
-            system_role_service.has_open_allow_add_app_master_role_limit({},
+            system_role_service.has_open_manage_app_master_role_limit({},
                 function (result) {
                     finished = true;
                     d.resolve(result);

@@ -37,7 +37,7 @@ function createAppController($scope, $window, toastr, AppService, AppUtil, Organ
     }
 
     function initSystemRole() {
-        SystemRoleService.has_open_allow_add_app_master_role_limit().then(
+        SystemRoleService.has_open_manage_app_master_role_limit().then(
             function (value) {
                 $scope.isOpenManageAppMasterRoleLimit = value.isOpen;
                 UserService.load_user().then(
