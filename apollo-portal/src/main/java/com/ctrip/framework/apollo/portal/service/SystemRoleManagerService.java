@@ -63,9 +63,9 @@ public class SystemRoleManagerService {
     rolePermissionService.createRoleWithPermissions(createAppRole,  createAppPermissionSet);
   }
 
-  public byte getCreateApplicationRoleSwitchValue() {
+  public boolean isCreateApplicationPermissionEnabled() {
     if (!portalDBPropertySource.containsProperty(CREATE_APPLICATION_LIMIT_SWITCH_KEY)) {
-        return 0;
+        return false;
     }
     Object value = portalDBPropertySource.getProperty(CREATE_APPLICATION_LIMIT_SWITCH_KEY);
 
@@ -80,12 +80,12 @@ public class SystemRoleManagerService {
         logger.error("apollo-portal serverConfig role.create-application.enabled must be 0 or 1");
         isOpenCreateApplicationLimit = 0;
     }
-    return isOpenCreateApplicationLimit;
+    return isOpenCreateApplicationLimit == 1;
   }
 
-  public byte getManageAppMasterRoleSwitchValue() {
+  public boolean isManageAppMasterPermissionEnabled() {
     if (!portalDBPropertySource.containsProperty(MANAGE_APP_MASTER_LIMIT_SWITCH_KEY)) {
-        return 0;
+        return false;
     }
     Object value = portalDBPropertySource.getProperty(MANAGE_APP_MASTER_LIMIT_SWITCH_KEY);
     byte isOpenManageAppMasterLimit;
@@ -99,19 +99,19 @@ public class SystemRoleManagerService {
       logger.error("apollo-portal serverConfig role.manage-app-master.enabled must be 0 or 1");
       isOpenManageAppMasterLimit = 0;
     }
-    return isOpenManageAppMasterLimit;
+    return isOpenManageAppMasterLimit == 1;
   }
 
-  public boolean hasCreateApplicationRole(String userId) {
-    if (getCreateApplicationRoleSwitchValue() == 0) {
+  public boolean hasCreateApplicationPermission(String userId) {
+    if (!isCreateApplicationPermissionEnabled()) {
       return true;
     }
 
     return rolePermissionService.userHasPermission(userId, PermissionType.CREATE_APPLICATION, SYSTEM_PERMISSION_TARGET_ID);
   }
 
-  public boolean hasManageAppMasterRole(String userId, String appId) {
-    if (getManageAppMasterRoleSwitchValue() == 0) {
+  public boolean hasManageAppMasterPermission(String userId, String appId) {
+    if (!isManageAppMasterPermissionEnabled()) {
       return true;
     }
 

@@ -47,6 +47,8 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
     String operator = app.getDataChangeCreatedBy();
     //create app permissions
     createAppMasterRole(appId, operator);
+    //create manageAppMaster permission
+    createManageAppMasterRole(appId, operator);
 
     //assign master role to user
     rolePermissionService
@@ -55,7 +57,6 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
 
     initNamespaceRoles(appId, ConfigConsts.NAMESPACE_APPLICATION, operator);
     initNamespaceEnvRoles(appId, ConfigConsts.NAMESPACE_APPLICATION, operator);
-    initManageAppMasterRole(appId, operator);
 
     //assign modify、release namespace role to user
     rolePermissionService.assignRoleToUsers(
@@ -108,13 +109,10 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
   }
 
   @Transactional
-  public void initManageAppMasterRole(String appId, String operator) {
+  public void createManageAppMasterRole(String appId, String operator) {
     Permission permission = createPermission(appId, PermissionType.MANAGE_APP_MASTER, operator);
     rolePermissionService.createPermission(permission);
-    Role  role = new Role();
-    role.setRoleName(RoleUtils.buildManageAppMasterRoleName(PermissionType.MANAGE_APP_MASTER, appId));
-    role.setDataChangeCreatedBy(operator);
-    role.setDataChangeLastModifiedBy(operator);
+    Role  role = createRole(RoleUtils.buildManageAppMasterRoleName(PermissionType.MANAGE_APP_MASTER, appId), operator);
     Set<Long> permissionIds = new HashSet<>();
     permissionIds.add(permission.getId());
     rolePermissionService.createRoleWithPermissions(role, permissionIds);
@@ -126,7 +124,12 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
     synchronized (DefaultRoleInitializationService.class) {
       Permission permission = permissionRepository.findTopByPermissionTypeAndTargetId(PermissionType.MANAGE_APP_MASTER, appId);
       if (permission == null) {
-        initManageAppMasterRole(appId, operator);
+        createManageAppMasterRole(appId, operator);
+        // check data
+        List<Permission> manageAppMasterPermissions = permissionRepository.findByPermissionTypeAndTargetId(PermissionType.MANAGE_APP_MASTER, appId);
+        if (manageAppMasterPermissions.size() > 1) {
+          throw new RuntimeException("have multi ManageAppMaster Permissions of " + appId + ", please try again later");
+        }
       }
     }
   }

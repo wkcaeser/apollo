@@ -238,7 +238,7 @@ public class PermissionController {
     return users;
   }
 
-  @PreAuthorize(value = "@permissionValidator.isSuperAdmin() OR @permissionValidator.hasManageAppMasterRole(#appId)")
+  @PreAuthorize(value = "@permissionValidator.hasManageAppMasterPermission(#appId)")
   @PostMapping("/apps/{appId}/roles/{roleType}")
   public ResponseEntity<Void> assignAppRoleToUser(@PathVariable String appId, @PathVariable String roleType,
                                                   @RequestBody String user) {
@@ -257,7 +257,7 @@ public class PermissionController {
     return ResponseEntity.ok().build();
   }
 
-    @PreAuthorize(value = "@permissionValidator.isSuperAdmin() OR @permissionValidator.hasManageAppMasterRole(#appId)")
+  @PreAuthorize(value = "@permissionValidator.hasManageAppMasterPermission(#appId)")
   @DeleteMapping("/apps/{appId}/roles/{roleType}")
   public ResponseEntity<Void> removeAppRoleFromUser(@PathVariable String appId, @PathVariable String roleType,
                                                     @RequestParam String user) {
@@ -310,7 +310,7 @@ public class PermissionController {
   public JsonObject hasCreateApplicationRole(@PathVariable String userId) {
     JsonObject rs = new JsonObject();
     rs.addProperty("hasCreateApplicationPermission", permissionValidator.isSuperAdmin()
-            || permissionValidator.hasCreateApplicationRole(userId));
+            || permissionValidator.hasCreateApplicationPermission(userId));
     return rs;
   }
 
@@ -341,7 +341,7 @@ public class PermissionController {
     @GetMapping("/system/role/manageAppMaster")
     public JsonObject isOpenManageAppMasterRoleLimit() {
       JsonObject rs = new JsonObject();
-      rs.addProperty("isOpen", systemRoleManagerService.getManageAppMasterRoleSwitchValue() == 1);
+      rs.addProperty("isOpen", systemRoleManagerService.isManageAppMasterPermissionEnabled());
       return rs;
     }
 }

@@ -125,15 +125,15 @@ public class PermissionValidator {
     return !isAppAdmin(appId) && !hasOperateNamespacePermission(appId, namespaceName, env);
   }
 
-  public boolean  hasCreateApplicationRole() {
-    return hasCreateApplicationRole(userInfoHolder.getUser().getUserId());
+  public boolean hasCreateApplicationPermission() {
+    return hasCreateApplicationPermission(userInfoHolder.getUser().getUserId());
   }
 
-  public boolean  hasCreateApplicationRole(String userId) {
-    return systemRoleManagerService.hasCreateApplicationRole(userId);
+  public boolean hasCreateApplicationPermission(String userId) {
+    return systemRoleManagerService.hasCreateApplicationPermission(userId);
   }
 
-  public boolean hasManageAppMasterRole(String appId) {
-    return systemRoleManagerService.hasManageAppMasterRole(userInfoHolder.getUser().getUserId(), appId);
+  public boolean hasManageAppMasterPermission(String appId) {
+    return systemRoleManagerService.hasManageAppMasterPermission(userInfoHolder.getUser().getUserId(), appId);
   }
 }
