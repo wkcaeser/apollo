@@ -238,7 +238,7 @@ public class PermissionController {
     return users;
   }
 
-  @PreAuthorize(value = "@permissionValidator.hasManageAppMasterPermission(#appId)")
+  @PreAuthorize(value = "@permissionValidator.isSuperAdmin() OR @permissionValidator.hasManageAppMasterPermission(#appId)")
   @PostMapping("/apps/{appId}/roles/{roleType}")
   public ResponseEntity<Void> assignAppRoleToUser(@PathVariable String appId, @PathVariable String roleType,
                                                   @RequestBody String user) {
@@ -257,7 +257,7 @@ public class PermissionController {
     return ResponseEntity.ok().build();
   }
 
-  @PreAuthorize(value = "@permissionValidator.hasManageAppMasterPermission(#appId)")
+  @PreAuthorize(value = "@permissionValidator.isSuperAdmin() OR @permissionValidator.hasManageAppMasterPermission(#appId)")
   @DeleteMapping("/apps/{appId}/roles/{roleType}")
   public ResponseEntity<Void> removeAppRoleFromUser(@PathVariable String appId, @PathVariable String roleType,
                                                     @RequestParam String user) {
