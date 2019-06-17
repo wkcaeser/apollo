@@ -125,11 +125,6 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
       Permission permission = permissionRepository.findTopByPermissionTypeAndTargetId(PermissionType.MANAGE_APP_MASTER, appId);
       if (permission == null) {
         createManageAppMasterRole(appId, operator);
-        // check data
-        List<Permission> manageAppMasterPermissions = permissionRepository.findByPermissionTypeAndTargetId(PermissionType.MANAGE_APP_MASTER, appId);
-        if (manageAppMasterPermissions.size() > 1) {
-          throw new RuntimeException("have multi ManageAppMaster Permissions of " + appId + ", please try again later");
-        }
       }
     }
   }
