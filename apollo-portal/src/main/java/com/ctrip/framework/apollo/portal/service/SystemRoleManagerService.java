@@ -1,5 +1,6 @@
 package com.ctrip.framework.apollo.portal.service;
 
+import com.ctrip.framework.apollo.portal.component.config.PortalConfig;
 import com.ctrip.framework.apollo.portal.constant.PermissionType;
 import com.ctrip.framework.apollo.portal.entity.po.Permission;
 import com.ctrip.framework.apollo.portal.entity.po.Role;
@@ -21,21 +22,21 @@ public class SystemRoleManagerService {
 
   public static final String CREATE_APPLICATION_ROLE_NAME = RoleUtils.buildCreateApplicationRoleName(PermissionType.CREATE_APPLICATION, SYSTEM_PERMISSION_TARGET_ID);
 
-  private static final String CREATE_APPLICATION_LIMIT_SWITCH_KEY = "role.create-application.enabled";
-  private static final String MANAGE_APP_MASTER_LIMIT_SWITCH_KEY = "role.manage-app-master.enabled";
+  public static final String CREATE_APPLICATION_LIMIT_SWITCH_KEY = "role.create-application.enabled";
+  public static final String MANAGE_APP_MASTER_LIMIT_SWITCH_KEY = "role.manage-app-master.enabled";
 
   private final RolePermissionService rolePermissionService;
   private final PermissionRepository  permissionRepository;
 
-  private final PortalDBPropertySource portalDBPropertySource;
+  private final PortalConfig portalConfig;
 
 
   @Autowired
   public SystemRoleManagerService(RolePermissionService rolePermissionService,
-      PermissionRepository permissionRepository, PortalDBPropertySource portalDBPropertySource) {
+                                  PermissionRepository permissionRepository, PortalConfig portalConfig) {
     this.rolePermissionService = rolePermissionService;
     this.permissionRepository = permissionRepository;
-    this.portalDBPropertySource = portalDBPropertySource;
+    this.portalConfig = portalConfig;
   }
 
   @PostConstruct
@@ -64,42 +65,11 @@ public class SystemRoleManagerService {
   }
 
   public boolean isCreateApplicationPermissionEnabled() {
-    if (!portalDBPropertySource.containsProperty(CREATE_APPLICATION_LIMIT_SWITCH_KEY)) {
-        return false;
-    }
-    Object value = portalDBPropertySource.getProperty(CREATE_APPLICATION_LIMIT_SWITCH_KEY);
-
-    byte isOpenCreateApplicationLimit;
-    try {
-        isOpenCreateApplicationLimit = Byte.parseByte(String.valueOf(value));
-        if (isOpenCreateApplicationLimit !=0 && isOpenCreateApplicationLimit !=1) {
-            throw new IllegalArgumentException("apollo-portal serverConfig role.create-application.enabled is illegalArgument");
-        }
-    }catch (Throwable e) {
-        logger.error(e.getMessage());
-        logger.error("apollo-portal serverConfig role.create-application.enabled must be 0 or 1");
-        isOpenCreateApplicationLimit = 0;
-    }
-    return isOpenCreateApplicationLimit == 1;
+    return portalConfig.isCreateApplicationPermissionEnabled();
   }
 
   public boolean isManageAppMasterPermissionEnabled() {
-    if (!portalDBPropertySource.containsProperty(MANAGE_APP_MASTER_LIMIT_SWITCH_KEY)) {
-        return false;
-    }
-    Object value = portalDBPropertySource.getProperty(MANAGE_APP_MASTER_LIMIT_SWITCH_KEY);
-    byte isOpenManageAppMasterLimit;
-    try {
-      isOpenManageAppMasterLimit = Byte.parseByte(String.valueOf(value));
-      if (isOpenManageAppMasterLimit !=0 && isOpenManageAppMasterLimit !=1) {
-        throw new IllegalArgumentException("apollo-portal serverConfig role.manage-app-master.enabled is illegalArgument");
-      }
-    }catch (Throwable e) {
-      logger.error(e.getMessage());
-      logger.error("apollo-portal serverConfig role.manage-app-master.enabled must be 0 or 1");
-      isOpenManageAppMasterLimit = 0;
-    }
-    return isOpenManageAppMasterLimit == 1;
+    return portalConfig.isManageAppMasterPermissionEnabled();
   }
 
   public boolean hasCreateApplicationPermission(String userId) {
