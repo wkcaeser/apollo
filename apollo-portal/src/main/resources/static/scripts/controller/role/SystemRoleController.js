@@ -21,7 +21,7 @@ angular.module('systemRole', ['app.service', 'apollo.directive', 'app.util', 'to
 
     initPermission();
 
-    $scope.addCreateApplicationRoleToUSer = function() {
+    $scope.addCreateApplicationRoleToUser = function() {
         var user = $('.' + $scope.modifySystemRoleWidgetId).select2('data')[0];
         if (!user) {
             toastr.warning("请选择用户名");

@@ -51,7 +51,9 @@ public class PermissionController {
           final UserInfoHolder userInfoHolder,
           final RolePermissionService rolePermissionService,
           final UserService userService,
-          final RoleInitializationService roleInitializationService, SystemRoleManagerService systemRoleManagerService, PermissionValidator permissionValidator) {
+          final RoleInitializationService roleInitializationService,
+          final SystemRoleManagerService systemRoleManagerService,
+          final PermissionValidator permissionValidator) {
     this.userInfoHolder = userInfoHolder;
     this.rolePermissionService = rolePermissionService;
     this.userService = userService;
@@ -238,7 +240,7 @@ public class PermissionController {
     return users;
   }
 
-  @PreAuthorize(value = "@permissionValidator.isSuperAdmin() OR @permissionValidator.hasManageAppMasterPermission(#appId)")
+  @PreAuthorize(value = "@permissionValidator.hasManageAppMasterPermission(#appId)")
   @PostMapping("/apps/{appId}/roles/{roleType}")
   public ResponseEntity<Void> assignAppRoleToUser(@PathVariable String appId, @PathVariable String roleType,
                                                   @RequestBody String user) {
@@ -257,7 +259,7 @@ public class PermissionController {
     return ResponseEntity.ok().build();
   }
 
-  @PreAuthorize(value = "@permissionValidator.isSuperAdmin() OR @permissionValidator.hasManageAppMasterPermission(#appId)")
+  @PreAuthorize(value = "@permissionValidator.hasManageAppMasterPermission(#appId)")
   @DeleteMapping("/apps/{appId}/roles/{roleType}")
   public ResponseEntity<Void> removeAppRoleFromUser(@PathVariable String appId, @PathVariable String roleType,
                                                     @RequestParam String user) {
@@ -307,18 +309,17 @@ public class PermissionController {
   }
 
   @GetMapping("/system/role/createApplication/{userId}")
-  public JsonObject hasCreateApplicationRole(@PathVariable String userId) {
+  public JsonObject hasCreateApplicationPermission(@PathVariable String userId) {
     JsonObject rs = new JsonObject();
-    rs.addProperty("hasCreateApplicationPermission", permissionValidator.isSuperAdmin()
-            || permissionValidator.hasCreateApplicationPermission(userId));
+    rs.addProperty("hasCreateApplicationPermission", permissionValidator.hasCreateApplicationPermission(userId));
     return rs;
   }
 
   @PreAuthorize(value = "@permissionValidator.isSuperAdmin()")
   @PostMapping("/apps/{appId}/system/master/{userId}")
-  public ResponseEntity<Void> manageAppMaster(@PathVariable String appId, @PathVariable String userId) {
+  public ResponseEntity<Void> addManageAppMasterRoleToUser(@PathVariable String appId, @PathVariable String userId) {
     checkUserExists(userId);
-    roleInitializationService.fixManageAppMasterRole(appId, userInfoHolder.getUser().getUserId());
+    roleInitializationService.initManageAppMasterRole(appId, userInfoHolder.getUser().getUserId());
     Set<String> userIds = new HashSet<>();
     userIds.add(userId);
     rolePermissionService.assignRoleToUsers(RoleUtils.buildManageAppMasterRoleName(PermissionType.MANAGE_APP_MASTER, appId),
@@ -330,7 +331,7 @@ public class PermissionController {
   @DeleteMapping("/apps/{appId}/system/master/{userId}")
   public ResponseEntity<Void> forbidManageAppMaster(@PathVariable String appId, @PathVariable String  userId) {
     checkUserExists(userId);
-    roleInitializationService.fixManageAppMasterRole(appId, userInfoHolder.getUser().getUserId());
+    roleInitializationService.initManageAppMasterRole(appId, userInfoHolder.getUser().getUserId());
     Set<String> userIds = new HashSet<>();
     userIds.add(userId);
     rolePermissionService.removeRoleFromUsers(RoleUtils.buildManageAppMasterRoleName(PermissionType.MANAGE_APP_MASTER, appId),
@@ -339,9 +340,9 @@ public class PermissionController {
   }
 
     @GetMapping("/system/role/manageAppMaster")
-    public JsonObject isOpenManageAppMasterRoleLimit() {
+    public JsonObject isManageAppMasterPermissionEnabled() {
       JsonObject rs = new JsonObject();
-      rs.addProperty("isOpen", systemRoleManagerService.isManageAppMasterPermissionEnabled());
+      rs.addProperty("isManageAppMasterPermissionEnabled", systemRoleManagerService.isManageAppMasterPermissionEnabled());
       return rs;
     }
 }

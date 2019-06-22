@@ -25,7 +25,8 @@ public class PermissionValidator {
           final UserInfoHolder userInfoHolder,
           final RolePermissionService rolePermissionService,
           final PortalConfig portalConfig,
-          final AppNamespaceService appNamespaceService, SystemRoleManagerService systemRoleManagerService) {
+          final AppNamespaceService appNamespaceService,
+          final SystemRoleManagerService systemRoleManagerService) {
     this.userInfoHolder = userInfoHolder;
     this.rolePermissionService = rolePermissionService;
     this.portalConfig = portalConfig;
@@ -134,6 +135,8 @@ public class PermissionValidator {
   }
 
   public boolean hasManageAppMasterPermission(String appId) {
-    return systemRoleManagerService.hasManageAppMasterPermission(userInfoHolder.getUser().getUserId(), appId);
+    // the manage app master permission might not be initialized, so we need to check isSuperAdmin first
+    return isSuperAdmin() ||
+            systemRoleManagerService.hasManageAppMasterPermission(userInfoHolder.getUser().getUserId(), appId);
   }
 }

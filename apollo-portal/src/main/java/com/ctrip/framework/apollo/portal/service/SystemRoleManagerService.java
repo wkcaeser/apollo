@@ -2,12 +2,7 @@ package com.ctrip.framework.apollo.portal.service;
 
 import com.ctrip.framework.apollo.portal.component.config.PortalConfig;
 import com.ctrip.framework.apollo.portal.constant.PermissionType;
-import com.ctrip.framework.apollo.portal.entity.po.Permission;
-import com.ctrip.framework.apollo.portal.entity.po.Role;
-import com.ctrip.framework.apollo.portal.repository.PermissionRepository;
 import com.ctrip.framework.apollo.portal.util.RoleUtils;
-import java.util.HashSet;
-import java.util.Set;
 import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +13,7 @@ import org.springframework.stereotype.Service;
 public class SystemRoleManagerService {
   public static final Logger logger = LoggerFactory.getLogger(SystemRoleManagerService.class);
 
-  private static final String SYSTEM_PERMISSION_TARGET_ID = "SystemRole";
+  public static final String SYSTEM_PERMISSION_TARGET_ID = "SystemRole";
 
   public static final String CREATE_APPLICATION_ROLE_NAME = RoleUtils.buildCreateApplicationRoleName(PermissionType.CREATE_APPLICATION, SYSTEM_PERMISSION_TARGET_ID);
 
@@ -26,45 +21,26 @@ public class SystemRoleManagerService {
   public static final String MANAGE_APP_MASTER_LIMIT_SWITCH_KEY = "role.manage-app-master.enabled";
 
   private final RolePermissionService rolePermissionService;
-  private final PermissionRepository  permissionRepository;
 
   private final PortalConfig portalConfig;
 
+  private final RoleInitializationService roleInitializationService;
 
   @Autowired
-  public SystemRoleManagerService(RolePermissionService rolePermissionService,
-                                  PermissionRepository permissionRepository, PortalConfig portalConfig) {
+  public SystemRoleManagerService(final RolePermissionService rolePermissionService,
+                                  final PortalConfig portalConfig,
+                                  final RoleInitializationService roleInitializationService) {
     this.rolePermissionService = rolePermissionService;
-    this.permissionRepository = permissionRepository;
     this.portalConfig = portalConfig;
+    this.roleInitializationService = roleInitializationService;
   }
 
   @PostConstruct
-  public synchronized void initSystemRole() {
-
-    if (permissionRepository.findTopByPermissionTypeAndTargetId(PermissionType.CREATE_APPLICATION, SYSTEM_PERMISSION_TARGET_ID) != null) {
-      return;
-    }
-
-    // create application permission init
-    Permission createAppPermission = new Permission();
-    createAppPermission.setPermissionType(PermissionType.CREATE_APPLICATION);
-    createAppPermission.setTargetId(SYSTEM_PERMISSION_TARGET_ID);
-    createAppPermission.setDataChangeCreatedBy("");
-    createAppPermission.setDataChangeLastModifiedBy("");
-    rolePermissionService.createPermission(createAppPermission);
-
-    //  create application role init
-    Role createAppRole  = new Role();
-    createAppRole.setRoleName(CREATE_APPLICATION_ROLE_NAME);
-    createAppRole.setDataChangeCreatedBy("");
-    createAppRole.setDataChangeLastModifiedBy("");
-    Set<Long>  createAppPermissionSet = new HashSet<>();
-    createAppPermissionSet.add(createAppPermission.getId());
-    rolePermissionService.createRoleWithPermissions(createAppRole,  createAppPermissionSet);
+  private void init() {
+    roleInitializationService.initCreateAppRole();
   }
 
-  public boolean isCreateApplicationPermissionEnabled() {
+  private boolean isCreateApplicationPermissionEnabled() {
     return portalConfig.isCreateApplicationPermissionEnabled();
   }
 
