@@ -12,15 +12,17 @@ import com.ctrip.framework.apollo.portal.entity.po.Role;
 import com.ctrip.framework.apollo.portal.repository.PermissionRepository;
 import com.ctrip.framework.apollo.portal.service.RoleInitializationService;
 import com.ctrip.framework.apollo.portal.service.RolePermissionService;
+import com.ctrip.framework.apollo.portal.service.SystemRoleManagerService;
 import com.ctrip.framework.apollo.portal.util.RoleUtils;
 import com.google.common.collect.Sets;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created by timothy on 2017/4/26.
@@ -109,10 +111,26 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
   }
 
   @Transactional
-  public void createManageAppMasterRole(String appId, String operator) {
+  public void initCreateAppRole() {
+    if (rolePermissionService.findRoleByRoleName(SystemRoleManagerService.CREATE_APPLICATION_ROLE_NAME) != null) {
+      return;
+    }
+    Permission createAppPermission = permissionRepository.findTopByPermissionTypeAndTargetId(PermissionType.CREATE_APPLICATION, SystemRoleManagerService.SYSTEM_PERMISSION_TARGET_ID);
+    if (createAppPermission == null) {
+      // create application permission init
+      createAppPermission = createPermission(SystemRoleManagerService.SYSTEM_PERMISSION_TARGET_ID, PermissionType.CREATE_APPLICATION, "apollo");
+      rolePermissionService.createPermission(createAppPermission);
+    }
+    //  create application role init
+    Role createAppRole = createRole(SystemRoleManagerService.CREATE_APPLICATION_ROLE_NAME, "apollo");
+    rolePermissionService.createRoleWithPermissions(createAppRole, Sets.newHashSet(createAppPermission.getId()));
+  }
+
+  @Transactional
+  private void createManageAppMasterRole(String appId, String operator) {
     Permission permission = createPermission(appId, PermissionType.MANAGE_APP_MASTER, operator);
     rolePermissionService.createPermission(permission);
-    Role  role = createRole(RoleUtils.buildManageAppMasterRoleName(PermissionType.MANAGE_APP_MASTER, appId), operator);
+    Role role = createRole(RoleUtils.buildManageAppMasterRoleName(PermissionType.MANAGE_APP_MASTER, appId), operator);
     Set<Long> permissionIds = new HashSet<>();
     permissionIds.add(permission.getId());
     rolePermissionService.createRoleWithPermissions(role, permissionIds);
@@ -120,12 +138,13 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
 
   // fix historical data
   @Transactional
-  public void fixManageAppMasterRole(String appId, String operator) {
+  public void initManageAppMasterRole(String appId, String operator) {
+    String manageAppMasterRoleName = RoleUtils.buildManageAppMasterRoleName(PermissionType.MANAGE_APP_MASTER, appId);
+    if (rolePermissionService.findRoleByRoleName(manageAppMasterRoleName) != null) {
+      return;
+    }
     synchronized (DefaultRoleInitializationService.class) {
-      Permission permission = permissionRepository.findTopByPermissionTypeAndTargetId(PermissionType.MANAGE_APP_MASTER, appId);
-      if (permission == null) {
-        createManageAppMasterRole(appId, operator);
-      }
+      createManageAppMasterRole(appId, operator);
     }
   }
 
